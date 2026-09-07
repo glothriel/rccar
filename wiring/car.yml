@@ -1,0 +1,111 @@
+metadata:
+  title: LEGO Technic RC car — revision 0
+  notes: >-
+    Logical wiring, not a fabrication harness. All duplicated GND, RAW, and +5V
+    endpoints are common star-distribution nets. TODO / VERIFY ON HARDWARE before soldering.
+
+connectors:
+  BAT:
+    type: Protected XTAR 18650 holder
+    pinlabels: [POS, NEG]
+  CHARGER:
+    type: TP4056 HW-373 v1.2.1
+    pinlabels: [B+, B-, OUT+, OUT-]
+    notes: USB-A to USB-C works; USB-C to USB-C PD did not start charging.
+  SWITCH:
+    type: MTS102 / Kamami 564543 SPDT ON-ON master switch
+    pinlabels: [COM, "ON", UNUSED]
+    notes: Panel-mounted 3-lug switch; no OFF position or published DC rating. VERIFY COM and selected throw by continuity.
+  MCU_SWITCH:
+    type: MTS102 / Kamami 564543 SPDT ON-ON XIAO power switch
+    pinlabels: [COM, "ON", UNUSED]
+    notes: Panel-mounted 3-lug switch; apparent OFF selects the insulated unused throw. Keep OFF whenever XIAO USB is connected.
+  DRIVER:
+    type: Adafruit DRV8833 3297
+    pinlabels: [VM, GND, AIN1, AIN2, SLP, AOUT1, AOUT2]
+  BOOST:
+    type: Pololu U3V16F5 4941
+    pinlabels: [VIN, GND, VOUT]
+  MCU:
+    type: Seeed XIAO ESP32-S3 Sense
+    pinlabels: [5V/VBUS, GND, D0/GPIO1, D1/GPIO2, D2/GPIO3, D3/GPIO4]
+    notes: VERIFY exact board and pins. Never combine USB and external 5 V blindly.
+  SERVO:
+    type: TowerPro SG90
+    pinlabels: [RED/+5V, BROWN/GND, YELLOW/SIGNAL]
+  MOTOR:
+    type: DNG-16016 DC gearmotor
+    pinlabels: [M1, M2]
+
+cables:
+  W_BAT:
+    wirecount: 2
+    colors: [RD, BK]
+  W_SWITCH:
+    wirecount: 1
+    colors: [RD]
+  W_DRIVER_POWER:
+    wirecount: 2
+    colors: [RD, BK]
+  W_BOOST_POWER:
+    wirecount: 2
+    colors: [RD, BK]
+  W_MCU_POWER:
+    wirecount: 2
+    colors: [RD, BK]
+  W_MCU_SWITCH:
+    wirecount: 1
+    colors: [RD]
+  W_SERVO_POWER:
+    wirecount: 2
+    colors: [RD, BK]
+  W_MOTOR_SIGNAL:
+    wirecount: 3
+    colors: [BU, WH, GN]
+  W_SERVO_SIGNAL:
+    wirecount: 1
+    colors: [YE]
+  W_MOTOR:
+    wirecount: 2
+    colors: [WH, WH]
+
+connections:
+  - - BAT: [POS, NEG]
+    - W_BAT: [1, 2]
+    - CHARGER: [B+, B-]
+  - - CHARGER: [OUT+]
+    - W_SWITCH: [1]
+    - SWITCH: [COM]
+  - - SWITCH: ["ON"]
+    - W_DRIVER_POWER: [1]
+    - DRIVER: [VM]
+  - - CHARGER: [OUT-]
+    - W_DRIVER_POWER: [2]
+    - DRIVER: [GND]
+  - - SWITCH: ["ON"]
+    - W_BOOST_POWER: [1]
+    - BOOST: [VIN]
+  - - CHARGER: [OUT-]
+    - W_BOOST_POWER: [2]
+    - BOOST: [GND]
+  - - BOOST: [VOUT]
+    - W_MCU_SWITCH: [1]
+    - MCU_SWITCH: [COM]
+  - - MCU_SWITCH: ["ON"]
+    - W_MCU_POWER: [1]
+    - MCU: [5V/VBUS]
+  - - BOOST: [GND]
+    - W_MCU_POWER: [2]
+    - MCU: [GND]
+  - - BOOST: [VOUT, GND]
+    - W_SERVO_POWER: [1, 2]
+    - SERVO: [RED/+5V, BROWN/GND]
+  - - MCU: [D0/GPIO1, D1/GPIO2, D3/GPIO4]
+    - W_MOTOR_SIGNAL: [1, 2, 3]
+    - DRIVER: [AIN1, AIN2, SLP]
+  - - MCU: [D2/GPIO3]
+    - W_SERVO_SIGNAL: [1]
+    - SERVO: [YELLOW/SIGNAL]
+  - - DRIVER: [AOUT1, AOUT2]
+    - W_MOTOR: [1, 2]
+    - MOTOR: [M1, M2]

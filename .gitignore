@@ -1,0 +1,8 @@
+.venv/
+.pio/
+__pycache__/
+wiring/car.html
+wiring/car.png
+wiring/car.svg
+wiring/car.bom.tsv
+firmware/include/wifi_config.h

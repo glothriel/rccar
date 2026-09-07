@@ -1,0 +1,198 @@
+{
+  "name": "rccar-rev0-perfboard",
+  "title": "RC car revision 0 — 24×18 perfboard",
+  "subtitle": "Component side and solder side · coordinates a–X / 1–18 · off-board wires use labelled landing pads",
+  "cols": 24,
+  "rows": 18,
+  "pitch": 26,
+  "style": {
+    "net_colors": {
+      "RAW+": "#b3261e",
+      "+5V": "#e05a00",
+      "MCU_5V": "#f08c00",
+      "GND": "#202124",
+      "MOTOR": "#7b1fa2",
+      "AIN": "#1565c0",
+      "SLP": "#00897b",
+      "SERVO_SIG": "#9a6700"
+    },
+    "default_color": "#555555",
+    "net_weights": [
+      ["RAW+", 6.0],
+      ["+5V", 6.0],
+      ["MCU_5V", 4.0],
+      ["GND", 6.0],
+      ["MOTOR", 6.0]
+    ],
+    "default_weight": 2.5
+  },
+  "legend": [
+    ["RAW+ after master switch", "#b3261e"],
+    ["regulated +5 V", "#e05a00"],
+    ["switched XIAO 5 V", "#f08c00"],
+    ["common GND", "#202124"],
+    ["motor output", "#7b1fa2"],
+    ["logic signal", "#1565c0"]
+  ],
+  "components": [
+    {
+      "ref": "DRIVER",
+      "kind": "module",
+      "label": "Adafruit DRV8833 #3297",
+      "title": "Adafruit DRV8833 #3297",
+      "subtitle": "Top/component view · rotated 180 degrees · channel A only",
+      "body": "Physical 2.54 mm pin grid. VM is the unprotected header input. Leave ISENSE jumpers open.",
+      "keepout": [0, 0],
+      "pins": {
+        "AIN1": [8, 7],
+        "AIN2": [7, 7],
+        "SLP": [6, 7],
+        "GND": [2, 7],
+        "VM": [1, 7],
+        "AOUT1": [7, 2],
+        "AOUT2": [6, 2]
+      }
+    },
+    {
+      "ref": "BOOST",
+      "kind": "module",
+      "label": "Pololu U3V16F5 #4941",
+      "title": "Pololu U3V16F5 #4941",
+      "subtitle": "Top/component view · rotated clockwise; board extends right from pins",
+      "body": "Pins are VOUT, GND, VIN top-to-bottom after rotating the module clockwise.",
+      "keepout": [0, 5, 1, 1],
+      "pins": {
+        "VOUT": [10, 12],
+        "GND": [10, 13],
+        "VIN": [10, 14]
+      }
+    },
+    {
+      "ref": "MCU",
+      "kind": "module",
+      "label": "XIAO ESP32-S3 Sense",
+      "title": "Seeed XIAO ESP32-S3 Sense",
+      "subtitle": "Top/component view · USB-C faces board edge above row 1",
+      "body": "Two 2.54 mm rows six holes apart. Verify Sense-board D2/SD-CS configuration before using the SD card.",
+      "keepout": [0, 0, 0, 3],
+      "pins": {
+        "D0/GPIO1": [16, 1],
+        "D1/GPIO2": [16, 2],
+        "D2/GPIO3": [16, 3],
+        "D3/GPIO4": [16, 4],
+        "5V/VBUS": [22, 1],
+        "GND": [22, 2]
+      }
+    },
+    {
+      "ref": "RAW_IN",
+      "kind": "wire",
+      "label": "RAW+ ← master switch",
+      "title": "Raw-positive wire landing pad",
+      "subtitle": "From selected throw of off-board master MTS102",
+      "body": "Direct-soldered, strain-relieved power wire. Charger and switch remain off-board.",
+      "keepout": [0, 0],
+      "pins": {"RAW+": [0, 10]}
+    },
+    {
+      "ref": "GND_IN",
+      "kind": "wire",
+      "label": "GND ← TP4056 OUT−",
+      "title": "Main ground wire landing pad",
+      "subtitle": "From off-board HW-373 OUT−",
+      "body": "Direct-soldered, strain-relieved power wire.",
+      "keepout": [0, 0],
+      "pins": {"GND": [0, 12]}
+    },
+    {
+      "ref": "MOTOR_OUT",
+      "kind": "wire",
+      "label": "MOTOR M1 / M2 →",
+      "title": "Motor wire landing pads",
+      "subtitle": "To off-board DNG-16016",
+      "body": "Two direct-soldered, strain-relieved motor wires. Confirm direction before final marking.",
+      "keepout": [0, 0],
+      "pins": {
+        "M1": [0, 1],
+        "M2": [0, 3]
+      }
+    },
+    {
+      "ref": "MCU_SWITCH",
+      "kind": "wire",
+      "label": "XIAO SW COM / RETURN",
+      "title": "Off-board XIAO power-switch wires",
+      "subtitle": "To COM and back from selected throw of MTS102",
+      "body": "The switch is panel-mounted. Its unused ON-ON throw must be insulated.",
+      "keepout": [0, 0],
+      "pins": {
+        "COM": [21, 17],
+        "RETURN": [23, 17]
+      }
+    },
+    {
+      "ref": "SERVO",
+      "kind": "wire",
+      "label": "SERVO GND / +5V / SIG",
+      "title": "SG90 wire landing pads",
+      "subtitle": "Off-board servo: brown / red / yellow",
+      "body": "Use a keyed connection or direct solder with strain relief; verify the owned lead colours.",
+      "keepout": [0, 0],
+      "pins": {
+        "GND": [15, 17],
+        "+5V": [17, 17],
+        "SIGNAL": [19, 17]
+      }
+    }
+  ],
+  "nets": [
+    {
+      "name": "RAW+",
+      "pins": [["RAW_IN", "RAW+"], ["DRIVER", "VM"], ["BOOST", "VIN"]],
+      "external": true
+    },
+    {
+      "name": "GND",
+      "pins": [["GND_IN", "GND"], ["DRIVER", "GND"], ["BOOST", "GND"], ["MCU", "GND"], ["SERVO", "GND"]],
+      "external": true
+    },
+    {
+      "name": "+5V",
+      "pins": [["BOOST", "VOUT"], ["MCU_SWITCH", "COM"], ["SERVO", "+5V"]],
+      "external": true
+    },
+    {
+      "name": "MCU_5V",
+      "pins": [["MCU_SWITCH", "RETURN"], ["MCU", "5V/VBUS"]],
+      "external": true
+    },
+    {
+      "name": "AIN1",
+      "pins": [["MCU", "D0/GPIO1"], ["DRIVER", "AIN1"]]
+    },
+    {
+      "name": "AIN2",
+      "pins": [["MCU", "D1/GPIO2"], ["DRIVER", "AIN2"]]
+    },
+    {
+      "name": "SLP",
+      "pins": [["MCU", "D3/GPIO4"], ["DRIVER", "SLP"]]
+    },
+    {
+      "name": "SERVO_SIG",
+      "pins": [["MCU", "D2/GPIO3"], ["SERVO", "SIGNAL"]],
+      "external": true
+    },
+    {
+      "name": "MOTOR1",
+      "pins": [["DRIVER", "AOUT1"], ["MOTOR_OUT", "M1"]],
+      "external": true
+    },
+    {
+      "name": "MOTOR2",
+      "pins": [["DRIVER", "AOUT2"], ["MOTOR_OUT", "M2"]],
+      "external": true
+    }
+  ],
+  "route": ["SLP", "AIN2", "AIN1", "SERVO_SIG", "MOTOR1", "MOTOR2", "RAW+", "+5V", "MCU_5V", "GND"]
+}
