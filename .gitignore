@@ -6,3 +6,4 @@ wiring/car.png
 wiring/car.svg
 wiring/car.bom.tsv
 firmware/include/wifi_config.h
+firmware/sdkconfig.*

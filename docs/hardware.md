@@ -97,10 +97,11 @@ Both the master switch and XIAO power switch are the same Kamami listing: SKU `5
 - `VIN` receives switched TP4056 output; `VOUT` feeds the SG90 and the XIAO switch. The motor must not use this 5 V rail.
 - **VERIFY:** measure 5 V under simultaneous XIAO/Wi-Fi and servo load before accepting the power budget.
 
-### Seeed Studio XIAO ESP32-S3 Sense
+### Seeed Studio XIAO ESP32-S3 Sense, product 113991115
 
 **Identification and mechanics**
 
+- The owned kit is Seeed Studio product `113991115` and includes an OV3660 camera.
 - Main PCB is nominally 21 x 17.8 mm; the Sense stack is listed as 21 x 17.8 x 15 mm. The two seven-pin rows use 2.54 mm pitch and are 15.24 mm, or six perfboard holes, apart.
 - Top view, USB-C at the top:
 

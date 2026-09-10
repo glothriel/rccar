@@ -10,6 +10,10 @@ const context = {};
 vm.runInNewContext(`${mappingSource}; result = mapJoystick`, context);
 const mapJoystick = context.result;
 
+const frameSource = source.match(/function movementFrame\([\s\S]*?\n    }/)[0];
+vm.runInNewContext(`${frameSource}; result = movementFrame`, context);
+const movementFrame = context.result;
+
 test('maps cardinal directions to semantic command signs and full scale', () => {
   assert.deepEqual({ ...mapJoystick(0, 0, 100) }, { drive: 0, steering: 0, x: 0, y: 0 });
   assert.deepEqual({ ...mapJoystick(0, -100, 100) }, { drive: 255, steering: 0, x: 0, y: -100 });
@@ -34,4 +38,9 @@ test('clamps diagonally to the circular boundary proportionally', () => {
 test('applies the center deadzone and handles unusable geometry', () => {
   assert.deepEqual({ ...mapJoystick(4, -4, 100) }, { drive: 0, steering: 0, x: 4, y: -4 });
   assert.deepEqual({ ...mapJoystick(10, 10, 0) }, { drive: 0, steering: 0, x: 0, y: 0 });
+});
+
+test('encodes movement as the v1 binary control frame', () => {
+  const bytes = new Uint8Array(movementFrame(-120, 25));
+  assert.deepEqual([...bytes], [0x01, 0xff, 0x88, 0x00, 0x19]);
 });

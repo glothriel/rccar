@@ -1,8 +1,6 @@
 #pragma once
 
-#include <Arduino.h>
-
-constexpr char kIndexHtml[] PROGMEM = R"HTML(
+constexpr char kIndexHtml[] = R"HTML(
 <!doctype html>
 <html lang="en">
 <head>
@@ -26,7 +24,7 @@ constexpr char kIndexHtml[] PROGMEM = R"HTML(
   <main>
     <div id="joystick" role="application" aria-label="Drive and steering joystick"><div id="knob"></div></div>
   </main>
-  <output id="readout" aria-live="polite">drive      0\nsteering   0</output>
+  <output id="readout" aria-live="polite">connecting
   <script>
     const DEADZONE = 0.08;
     const MAX_STEERING = 80;
@@ -49,33 +47,55 @@ constexpr char kIndexHtml[] PROGMEM = R"HTML(
       };
     }
 
+    function movementFrame(drive, steering) {
+      const frame = new ArrayBuffer(5);
+      const view = new DataView(frame);
+      view.setUint8(0, 0x01);
+      view.setInt16(1, drive, false);
+      view.setInt16(3, steering, false);
+      return frame;
+    }
+
     const joystick = document.querySelector('#joystick');
     const knob = document.querySelector('#knob');
     const readout = document.querySelector('#readout');
     let activePointer = null;
     let command = { drive: 0, steering: 0 };
-    let sendPending = false;
-    let sending = false;
+    let applied = { drive: 0, steering: 0 };
+    let socket;
+    let reconnectDelay = 250;
 
-    async function send() {
-      sendPending = true;
-      if (sending) return;
-      sending = true;
-      while (sendPending) {
-        sendPending = false;
-        const next = command;
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 150);
-        try {
-          await fetch(`/command?drive=${next.drive}&steering=${next.steering}`, {
-            method: 'POST', cache: 'no-store', signal: controller.signal
-          });
-        } catch (_) {
-        } finally {
-          clearTimeout(timeout);
-        }
+    function render(connection = socket?.readyState === WebSocket.OPEN ? 'connected' : 'connecting') {
+      readout.value = `${connection}\ndrive    ${String(applied.drive).padStart(4)}\nsteering ${String(applied.steering).padStart(4)}`;
+    }
+
+    function connect() {
+      socket = new WebSocket(`ws://${location.host}/ws/v1/control`);
+      socket.binaryType = 'arraybuffer';
+      socket.addEventListener('open', () => {
+        reconnectDelay = 250;
+        render('connected');
+        if (activePointer !== null) send();
+      });
+      socket.addEventListener('message', event => {
+        if (!(event.data instanceof ArrayBuffer) || event.data.byteLength !== 9) return;
+        const view = new DataView(event.data);
+        if (view.getUint8(0) !== 0x02) return;
+        applied = { drive: view.getInt16(5, false), steering: view.getInt16(7, false) };
+        render();
+      });
+      socket.addEventListener('close', () => {
+        render('disconnected');
+        setTimeout(connect, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, 5000);
+      });
+      socket.addEventListener('error', () => socket.close());
+    }
+
+    function send() {
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(movementFrame(command.drive, command.steering));
       }
-      sending = false;
     }
 
     function update(event) {
@@ -85,7 +105,6 @@ constexpr char kIndexHtml[] PROGMEM = R"HTML(
       const mapped = mapJoystick(event.clientX - (box.left + box.width / 2), event.clientY - (box.top + box.height / 2), radius);
       knob.style.transform = `translate(${mapped.x}px, ${mapped.y}px)`;
       command = { drive: mapped.drive, steering: mapped.steering };
-      readout.value = `drive    ${String(command.drive).padStart(4)}\nsteering ${String(command.steering).padStart(4)}`;
       send();
     }
 
@@ -94,7 +113,6 @@ constexpr char kIndexHtml[] PROGMEM = R"HTML(
       activePointer = null;
       command = { drive: 0, steering: 0 };
       knob.style.transform = '';
-      readout.value = 'drive      0\nsteering   0';
       if (wasActive) send();
     }
 
@@ -121,6 +139,7 @@ constexpr char kIndexHtml[] PROGMEM = R"HTML(
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stop();
     });
+    connect();
   </script>
 </body>
 </html>
