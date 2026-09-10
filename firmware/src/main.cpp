@@ -12,11 +12,9 @@
 #include "esp_netif.h"
 #include "esp_timer.h"
 #include "esp_wifi.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "lwip/inet.h"
 #include "nvs_flash.h"
 
 #include "pin_config.h"
@@ -450,8 +448,11 @@ void wifiEventHandler(void *, esp_event_base_t eventBase, std::int32_t eventId,
     ESP_ERROR_CHECK(esp_wifi_connect());
   } else if (eventBase == WIFI_EVENT &&
              eventId == WIFI_EVENT_STA_DISCONNECTED) {
+    const auto *event =
+        static_cast<wifi_event_sta_disconnected_t *>(eventData);
     xEventGroupClearBits(wifiEvents, kWifiConnectedBit);
-    ESP_LOGW(kTag, "Wi-Fi disconnected; reconnecting");
+    ESP_LOGW(kTag, "Wi-Fi disconnected (reason=%u, RSSI=%d); reconnecting",
+             event->reason, event->rssi);
     esp_wifi_connect();
   } else if (eventBase == IP_EVENT && eventId == IP_EVENT_STA_GOT_IP) {
     const auto *event = static_cast<ip_event_got_ip_t *>(eventData);
@@ -485,6 +486,7 @@ void startWifi() {
   station.sta.pmf_cfg.required = false;
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &station));
+  ESP_LOGI(kTag, "Connecting to Wi-Fi SSID \"%s\"", wifi_config::kSsid);
   ESP_ERROR_CHECK(esp_wifi_start());
 }
 

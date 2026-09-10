@@ -7,3 +7,5 @@ wiring/car.svg
 wiring/car.bom.tsv
 firmware/include/wifi_config.h
 firmware/sdkconfig.*
+!firmware/sdkconfig.defaults
+firmware/compile_commands.json

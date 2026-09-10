@@ -1,0 +1,8 @@
+[
+  {
+    "label": "Firmware: refresh clangd database",
+    "command": "./local-dev",
+    "args": ["clangd"],
+    "hide": "on_success"
+  }
+]
